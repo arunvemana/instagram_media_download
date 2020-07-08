@@ -4,10 +4,10 @@ import os
 import shutil
 def make_folder(name:str):
     try:
-        os.makedirs(name)
+        os.makedirs(name,exist_ok = True)
         print("directory", name ,"created")
-    except FileExistsError:
-        print("directory", name , "already exist")
+    except OSError as error:
+        print("directory", name , "can't be created")
 
 def download_image(image_url:str,filename:str):
     image_response = requests.get(image_url)
