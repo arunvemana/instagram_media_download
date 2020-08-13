@@ -2,37 +2,42 @@ import requests
 import json
 import os
 import shutil
+
+current_path = os.getcwd()
+
 def make_folder(name:str):
     try:
-        os.makedirs(name,exist_ok = True)
+        print(current_path)
+        os.makedirs(current_path+'\\'+ name,exist_ok = True)
         print("directory", name ,"created")
-    except OSError as error:
+    except OSError as error:  
+        print(error)  
         print("directory", name , "can't be created")
 
 def download_image(image_url:str,filename:str):
     image_response = requests.get(image_url)
     if image_response.status_code == 200:
-        print("hello")
         with open(filename,'wb') as f:
             f.write(image_response.content)
 
 def get_details(url:str):
     url = url+"?__a=1"
     response = requests.get(url)
-    print(response.status_code)
     response = json.loads(response.text)
     if "user" in response['graphql']:
-        print(response['graphql']['user']['full_name'])
         user_id = response['graphql']['user']['id']
         
 # making folder to save images 
         folder_name = response['graphql']['user']['full_name']
+        if not folder_name:
+            folder_name = user_id
         make_folder(folder_name)
+        
+        print(folder_name)
         # profile image
-        print(response['graphql']['user']['profile_pic_url_hd'])
         profile_image_url  = response['graphql']['user']['profile_pic_url_hd']
 # download that image
-        download_image(profile_image_url,f"{folder_name}\profile_image.jpg")
+        download_image(profile_image_url,f"{current_path}\{folder_name}\profile_image.jpg")
     return user_id,folder_name
 
 def download(url:str):
@@ -54,17 +59,12 @@ def download(url:str):
         response = json.loads(response.text)
         max_id = response['data']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
         if "user" in response['data']:
-            print(len(response['data']['user']['edge_owner_to_timeline_media']['edges']))
             images_list = response['data']['user']['edge_owner_to_timeline_media']['edges']
             for i in images_list:
-                download_image(i['node']['display_url'],f"{folder_name}\{i['node']['id']}.jpg")
+                download_image(i['node']['display_url'],f"{current_path}\{folder_name}\{i['node']['id']}.jpg")
 
 
-# video_download("https://www.instagram.com/p/B72Y46Wl1Qe/")
-# download("https://www.instagram.com/rachel_mypark/")
-# download("https://www.instagram.com/vvveenaa/")
-# url = "https://www.instagram.com/millionsbilliondreams/?__a=1"
-url = "https://www.instagram.com/love.connection_/?__a=1"
+
 
 
 
@@ -72,6 +72,5 @@ if __name__ == "__main__":
     insta_id = input('Enter required Instagram ID :')
     if insta_id[0] == '@':
         insta_id = insta_id[1:]
-    print(insta_id)
     url = f'https://www.instagram.com/{insta_id}/'
     download(url)
